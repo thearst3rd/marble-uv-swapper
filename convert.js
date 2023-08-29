@@ -121,10 +121,18 @@ function copyPixelLanczos(read, write) {
   return kernelResample(read, write, filterSize, kernel);
 }
 
-function renderFace({data: readData, interpolation, maxWidth = Infinity}) {
+function mapMbgToMbu(x, y) {
+  return [x, y];
+}
 
-  const faceWidth = readData.width;//Math.min(maxWidth, readData.width / 4);
-  const faceHeight = readData.height;//faceWidth;
+function mapMbuToMbg(x, y) {
+  return [1-x, y];
+}
+
+function renderFace({data: readData, interpolation, mapping}) {
+
+  const faceWidth = readData.width;
+  const faceHeight = readData.height;
 
   const writeData = new ImageData(faceWidth, faceHeight);
 
@@ -133,6 +141,9 @@ function renderFace({data: readData, interpolation, maxWidth = Infinity}) {
     interpolation === 'cubic' ? copyPixelBicubic(readData, writeData) :
     interpolation === 'lanczos' ? copyPixelLanczos(readData, writeData) :
     copyPixelNearest(readData, writeData);
+
+  const mapCoords =
+    mapping === 'g2u' ? mapMbgToMbu : mapMbuToMbg;
 
   for (let x = 0; x < faceWidth; x++) {
     for (let y = 0; y < faceHeight; y++) {
@@ -151,7 +162,8 @@ function renderFace({data: readData, interpolation, maxWidth = Infinity}) {
       //const lat = Math.acos(cube.z / r);
 
       //copyPixel(readData.width * lon / Math.PI / 2 - 0.5, readData.height * lat / Math.PI - 0.5, to);
-      copyPixel(x, y, to);
+      let coords = mapCoords(x / faceWidth, y / faceHeight);
+      copyPixel(coords[0] * faceWidth, coords[1] * faceHeight, to);
     }
   }
 

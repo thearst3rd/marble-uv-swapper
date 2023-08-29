@@ -41,13 +41,11 @@ class OutputImage {
     this.anchor.appendChild(this.img);
   }
 
-  setPreview(url) {
+  setPreviewAndDownload(url) {
     this.img.src = url;
-  }
 
-  setDownload(url) {
     this.anchor.href = url;
-    this.anchor.download = `marble.png`;
+    this.anchor.download = 'marble.png';
     this.img.style.filter = '';
   }
 }
@@ -128,28 +126,16 @@ function processImage(data) {
 
   const worker = new Worker('convert.js');
 
-  const setDownload = ({data: imageData}) => {
+  const setPreviewAndDownload = ({data: imageData}) => {
     getDataURL(imageData)
-      .then(url => output.setDownload(url));
+      .then(url => output.setPreviewAndDownload(url));
 
     dom.generating.style.visibility = 'hidden';
     workers = [];
   };
 
-  const setPreview = ({data: imageData}) => {
-    getDataURL(imageData)
-      .then(url => output.setPreview(url));
-
-    worker.onmessage = setDownload;
-    worker.postMessage(options);
-  };
-
-  worker.onmessage = setPreview;
-  worker.postMessage(Object.assign({}, options, {
-    //maxWidth: 200,
-    interpolation: 'linear',
-    mapping: 'g2u',
-  }));
+  worker.onmessage = setPreviewAndDownload;
+  worker.postMessage(options);
 
   workers.push(worker);
 }
