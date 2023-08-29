@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="description" content="Convert a 360° panorama to a cubemap.">
-  <title>Panorama to Cubemap</title>
+  <title>Marble UV Converter</title>
   <style>
     body {
       margin: 1em auto;
@@ -26,26 +26,20 @@
 
 <body>
   <header>
-    <h1>Panorama to Cubemap</h1>
-    <aside>Convert a 360° panorama to six cube faces.</aside>
+    <h1>Marble UV Converter</h1>
+    <aside>Convert marble textures between Marble Blast Gold and Marble Blast Ultra style UV mappings.</aside>
   </header>
 
   <main>
     <section>
       <h2>Upload</h2>
-      <label>Upload a panoramic image: <input id="imageInput" type="file" accept="image/*"></label>
-      <ul>
-        <li>The image should be formatted with the equirectangular projection.</li>
-        <li>The image should have an aspect ratio of 2:1 (the width must be exactly twice the height).</li>
-      </ul>
-      <p>A cubemap will be generated from your image.</p>
+      <label>Upload a marble texture: <input id="imageInput" type="file" accept="image/*"></label>
+      <p>The image can be in either MBG or MBU format.</p>
+      <p>A texture will be generated from your image in the correct UV format.</p>
     </section>
 
     <section class="settings">
       <h2>Settings</h2>
-      <div>
-        <label>Cube Rotation: <input id="cubeRotation" type="number" min="0" max="359" value="180">°</label>
-      </div>
       <fieldset title="The resampling algorithm to use when generating the cubemap.">
         <legend>Interpolation type</legend>
         <label><input type="radio" name="interpolation" value="lanczos" checked>Lanczos (best but slower)</label>
@@ -53,24 +47,27 @@
         <label><input type="radio" name="interpolation" value="linear">Linear (softer details)</label>
       </fieldset>
       <fieldset>
-        <legend>Output format</legend>
-        <label><input type="radio" name="format" value="png" checked>PNG</label>
-        <label><input type="radio" name="format" value="jpg">JPEG</label>
+        <legend>Output UV mapping</legend>
+        <label><input type="radio" name="mapping" value="g2u" checked>MBG to MBU</label>
+        <label><input type="radio" name="mapping" value="u2g">MBU to MBG</label>
       </fieldset>
     </section>
 
     <section>
       <h2>Output</h2>
-      <p>Click each cube face to save it to your computer.</p>
+      <p>Click the image to save it to your computer.</p>
       <div id="cubemap">
         <b id="generating" style="visibility:hidden">Generating...</b>
-        <output id="faces"></output>
+        <output id="converted"></output>
       </div>
     </section>
   </main>
 
   <footer>
     <p>
+      <hr>
+      <small>Based on <a href="https://jaxry.github.io/panorama-to-cubemap/">Panorama to Cubemap</a></small>
+      <br>
       <small>By <a href="https://github.com/jaxry">Lucas Crane</a></small>
       <br>
       <small>Design by <a href="http://motherfuckingwebsite.com/">mf</a></small>

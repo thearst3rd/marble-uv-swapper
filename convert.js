@@ -17,7 +17,7 @@ function copyPixelNearest(read, write) {
       clamp(Math.round(yFrom), 0, height - 1)
     );
 
-    for (let channel = 0; channel < 3; channel++) {
+    for (let channel = 0; channel < 4; channel++) {
       write.data[to + channel] = data[nearest + channel];
     }
   };
@@ -41,7 +41,7 @@ function copyPixelBilinear(read, write) {
     const p01 = readIndex(xl, yr);
     const p11 = readIndex(xr, yr);
 
-    for (let channel = 0; channel < 3; channel++) {
+    for (let channel = 0; channel < 4; channel++) {
       const p0 = data[p00 + channel] * (1 - xf) + data[p10 + channel] * xf;
       const p1 = data[p01 + channel] * (1 - xf) + data[p11 + channel] * xf;
       write.data[to + channel] = Math.ceil(p0 * (1 - yf) + p1 * yf);
@@ -71,7 +71,7 @@ function kernelResample(read, write, filterSize, kernel) {
       yKernel[i] = kernel(yFrom - (yStart + i));
     }
 
-    for (let channel = 0; channel < 3; channel++) {
+    for (let channel = 0; channel < 4; channel++) {
       let q = 0;
 
       for (let i = 0; i < twoFilterSize; i++) {
@@ -121,46 +121,10 @@ function copyPixelLanczos(read, write) {
   return kernelResample(read, write, filterSize, kernel);
 }
 
-const orientations = {
-  pz: (out, x, y) => {
-    out.x = -1;
-    out.y = -x;
-    out.z = -y;
-  },
-  nz: (out, x, y) => {
-    out.x = 1;
-    out.y = x;
-    out.z = -y;
-  },
-  px: (out, x, y) => {
-    out.x = x;
-    out.y = -1;
-    out.z = -y;
-  },
-  nx: (out, x, y) => {
-    out.x = -x;
-    out.y = 1;
-    out.z = -y;
-  },
-  py: (out, x, y) => {
-    out.x = -y;
-    out.y = -x;
-    out.z = 1;
-  },
-  ny: (out, x, y) => {
-    out.x = y;
-    out.y = -x;
-    out.z = -1;
-  }
-};
+function renderFace({data: readData, interpolation, maxWidth = Infinity}) {
 
-function renderFace({data: readData, face, rotation, interpolation, maxWidth = Infinity}) {
-
-  const faceWidth = Math.min(maxWidth, readData.width / 4);
-  const faceHeight = faceWidth;
-
-  const cube = {};
-  const orientation = orientations[face];
+  const faceWidth = readData.width;//Math.min(maxWidth, readData.width / 4);
+  const faceHeight = readData.height;//faceWidth;
 
   const writeData = new ImageData(faceWidth, faceHeight);
 
@@ -175,18 +139,19 @@ function renderFace({data: readData, face, rotation, interpolation, maxWidth = I
       const to = 4 * (y * faceWidth + x);
 
       // fill alpha channel
-      writeData.data[to + 3] = 255;
+      //writeData.data[to + 3] = 255;
 
       // get position on cube face
       // cube is centered at the origin with a side length of 2
-      orientation(cube, (2 * (x + 0.5) / faceWidth - 1), (2 * (y + 0.5) / faceHeight - 1));
+      //orientation(cube, (2 * (x + 0.5) / faceWidth - 1), (2 * (y + 0.5) / faceHeight - 1));
 
       // project cube face onto unit sphere by converting cartesian to spherical coordinates
-      const r = Math.sqrt(cube.x*cube.x + cube.y*cube.y + cube.z*cube.z);
-      const lon = mod(Math.atan2(cube.y, cube.x) + rotation, 2 * Math.PI);
-      const lat = Math.acos(cube.z / r);
+      //const r = Math.sqrt(cube.x*cube.x + cube.y*cube.y + cube.z*cube.z);
+      //const lon = mod(Math.atan2(cube.y, cube.x) + rotation, 2 * Math.PI);
+      //const lat = Math.acos(cube.z / r);
 
-      copyPixel(readData.width * lon / Math.PI / 2 - 0.5, readData.height * lat / Math.PI - 0.5, to);
+      //copyPixel(readData.width * lon / Math.PI / 2 - 0.5, readData.height * lat / Math.PI - 0.5, to);
+      copyPixel(x, y, to);
     }
   }
 
