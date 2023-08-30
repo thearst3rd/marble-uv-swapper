@@ -121,10 +121,34 @@ function copyPixelLanczos(read, write) {
   return kernelResample(read, write, filterSize, kernel);
 }
 
+// Given a pixel on the MBU texture, where should it look in the MBG texture?
 function mapMbgToMbu(x, y) {
-  return [x, y];
+  x *= 2;
+  const leftSide = x < 1;
+  if (!leftSide)
+    x -= 1;
+  x = 2 * x - 1;
+  y = 2 * y - 1;
+  let dist = Math.sqrt(x * x + y * y);
+  //dist *= 1.025
+  if (dist > 1.03)
+    return [-1, -1];
+  else if (dist > 1.0)
+    dist = 1.0;
+  let ang = Math.atan2(y, x);
+  // janky formula idk
+  //let distortAng = ang - Math.PI / 2;
+  //if (distortAng < -3 * Math.PI / 2)
+  //  distortAng += 2 * Math.PI;
+  //dist /= 0.97 + 0.03 * (Math.abs(distortAng) / Math.PI)
+  if (ang < 0)
+    ang += 2 * Math.PI
+  let yy = leftSide ? (dist / 2.0) : (1.0 - dist / 2.0);
+  let xx = ang / (2 * Math.PI);
+  return [xx, yy];
 }
 
+// Given a pixel on the MBG texture, where should it look in the MBU texture?
 function mapMbuToMbg(x, y) {
   return [1-x, y];
 }
@@ -148,22 +172,14 @@ function renderFace({data: readData, interpolation, mapping}) {
   for (let x = 0; x < faceWidth; x++) {
     for (let y = 0; y < faceHeight; y++) {
       const to = 4 * (y * faceWidth + x);
-
-      // fill alpha channel
-      //writeData.data[to + 3] = 255;
-
-      // get position on cube face
-      // cube is centered at the origin with a side length of 2
-      //orientation(cube, (2 * (x + 0.5) / faceWidth - 1), (2 * (y + 0.5) / faceHeight - 1));
-
-      // project cube face onto unit sphere by converting cartesian to spherical coordinates
-      //const r = Math.sqrt(cube.x*cube.x + cube.y*cube.y + cube.z*cube.z);
-      //const lon = mod(Math.atan2(cube.y, cube.x) + rotation, 2 * Math.PI);
-      //const lat = Math.acos(cube.z / r);
-
-      //copyPixel(readData.width * lon / Math.PI / 2 - 0.5, readData.height * lat / Math.PI - 0.5, to);
       let coords = mapCoords(x / faceWidth, y / faceHeight);
-      copyPixel(coords[0] * faceWidth, coords[1] * faceHeight, to);
+
+      if (coords[0] >= 0 && coords[1] >= 0) {
+        copyPixel(coords[0] * faceWidth, coords[1] * faceHeight, to);
+      } else {
+        for (let channel = 0; channel < 4; channel++)
+          writeData.data[to + channel] = 0;
+      }
     }
   }
 
